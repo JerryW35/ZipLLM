@@ -2,6 +2,31 @@
 
 ZipLLM is an efficient LLM storage system that significantly reduces storage cost through tensor-level deduplication and BitX compression.
 
+## Prerequisites
+
+### Install Rust
+```bash
+# Install Rust (if not already installed)
+curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh
+source ~/.cargo/env
+
+# Verify installation
+rustc --version
+cargo --version
+```
+
+### Python Dependencies
+```bash
+# Install required Python packages
+pip3 install -r requirements.txt
+```
+
+### Hugging Face Token
+```bash
+# Set your HF token for model downloads
+export HF_TOKEN=your_token_here
+```
+
 ## Quick Start
 
 ### 1. Setup Test Environment
@@ -12,7 +37,6 @@ vim config.json
 # Download test models and generate base-finetune mapping
 ./setup_test_models.sh
 ```
-
 ### 2. Build Project
 ```bash
 cargo build --release
