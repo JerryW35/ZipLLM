@@ -77,10 +77,23 @@ Test restore performance across different thread counts:
 
 ```bash
 cd analysis
-python3 throughput_analyzer.py
+
+# Run experiments with different thread counts
+python3 throughput_analysis.py --threads 1 2 4 8 16 32 48
+
+# Only analyze existing results
+python3 throughput_analysis.py --analyze-only
+
+# Run experiments and analyze results automatically
+python3 throughput_analysis.py --threads 1 4 8 16 --analyze
 ```
 
-Generates CSV reports and visualization plots showing throughput vs thread count relationships.
+Features:
+- Automatically clears system cache before each experiment
+- Tests restore performance with different thread configurations  
+- Generates CSV reports and visualization plots
+- Shows throughput vs thread count relationships
+- Analyzes threading efficiency compared to single-thread baseline
 
 ## Project Structure
 
@@ -99,7 +112,7 @@ zipllm_rust/
 │   ├── bitx.rs                # Standalone BitX tool
 │   └── restore_example.rs     # API usage example
 ├── analysis/
-│   └── throughput_analyzer.py # Performance analysis
+│   └── throughput_analysis.py  # Performance testing & analysis
 ├── py_lib/
 │   ├── download.py            # Model downloader
 │   └── generate_base_ft.py    # Base-finetune mapper

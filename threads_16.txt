@@ -1,0 +1,109 @@
+# ZipLLM Restore Experiment Results
+# Model: bambisheng_UltraIF-8B-SFT
+# Threads: 16
+# Generated: 2025-07-31T16:18:13.689152
+# Command: ../target/release/restore bambisheng_UltraIF-8B-SFT /tmp/zipllm_test
+
+=== Experiment with 16 threads ===
+Timestamp: 2025-07-31T16:18:11.931212
+Command: ../target/release/restore bambisheng_UltraIF-8B-SFT /tmp/zipllm_test
+Environment: RAYON_NUM_THREADS=16
+Duration: 162.68s
+=== STDOUT ===
+
+=== STDERR ===
+[2025-07-31T16:15:29Z INFO  restore] 🚀 ZipLLM Restore Tool - Parallel Memory Mapping Mode
+[2025-07-31T16:15:29Z INFO  restore] 📁 Model ID: bambisheng_UltraIF-8B-SFT
+[2025-07-31T16:15:29Z INFO  restore] 📁 Output Directory: /tmp/zipllm_test
+[2025-07-31T16:15:29Z INFO  restore] 🏁 Performance monitoring: Pure processing throughput separated from IO
+[2025-07-31T16:15:29Z WARN  zipllm::config] ⚠️  Could not read config.json: No such file or directory (os error 2)
+[2025-07-31T16:15:29Z WARN  zipllm::config] 🔄 Using default configuration
+[2025-07-31T16:15:29Z INFO  zipllm::config] 💡 Create config.json to customize settings
+[2025-07-31T16:15:29Z INFO  zipllm::restore] 🚀 Starting optimized batch restore for model: bambisheng_UltraIF-8B-SFT
+[2025-07-31T16:15:29Z INFO  zipllm::restore] Found 4 files to restore for model 'bambisheng_UltraIF-8B-SFT'
+[2025-07-31T16:15:29Z INFO  zipllm::restore] 🔄 Restoring file: model-00001-of-00004.safetensors
+[2025-07-31T16:15:29Z INFO  zipllm::restore] 📦 Batch loading 82 tensors...
+[2025-07-31T16:15:29Z INFO  zipllm::restore] 📈 Compression stats: BitX:82, Zstd:0, Dedup:0, None:0
+[2025-07-31T16:15:29Z INFO  zipllm::restore] 🔄 FT compressed data size: 2255.0 MB
+[2025-07-31T16:15:29Z INFO  zipllm::restore] 🔄 Loading 82 unique tensors + 82 compressed files
+[2025-07-31T16:15:58Z INFO  zipllm::restore] ✅ Batch loading: 162.62 MB/s (29.186s for 4746.140625 MB)
+[2025-07-31T16:15:58Z INFO  zipllm::restore] 🔧 Parallel decompression of 82 tensors...
+[2025-07-31T16:15:59Z INFO  zipllm::restore] ✅ Decompression completed:
+[2025-07-31T16:15:59Z INFO  zipllm::restore]    FT compressed data: 2255.0 MB
+[2025-07-31T16:15:59Z INFO  zipllm::restore]    Total output: 4746.1 MB
+[2025-07-31T16:15:59Z INFO  zipllm::restore]    FT decomp throughput: 2.86 GB/s
+[2025-07-31T16:15:59Z INFO  zipllm::restore] 🚀 Writing 82 tensors using parallel mmap...
+[2025-07-31T16:16:19Z INFO  zipllm::restore] ✅ Writing: 232.41 MB/s (20.421s for 4746.149703979492 MB)
+[2025-07-31T16:16:19Z INFO  zipllm::restore] **📊 File restore summary for 'model-00001-of-00004.safetensors':**
+[2025-07-31T16:16:19Z INFO  zipllm::restore]    Metadata:      0.003s
+[2025-07-31T16:16:19Z INFO  zipllm::restore]    Batch Load:    29.186s (0.16 GB/s)
+[2025-07-31T16:16:19Z INFO  zipllm::restore]    Decompression: 0.770s (2.86 GB/s FT throughput)
+[2025-07-31T16:16:19Z INFO  zipllm::restore]    Writing:       20.421s (0.23 GB/s)
+[2025-07-31T16:16:19Z INFO  zipllm::restore]    Total:         50.380s (0.09 GB/s overall)
+[2025-07-31T16:16:20Z INFO  zipllm::restore] ✅ Restored: model-00001-of-00004.safetensors
+[2025-07-31T16:16:20Z INFO  zipllm::restore] 🔄 Restoring file: model-00003-of-00004.safetensors
+[2025-07-31T16:16:20Z INFO  zipllm::restore] 📦 Batch loading 100 tensors...
+[2025-07-31T16:16:20Z INFO  zipllm::restore] 📈 Compression stats: BitX:100, Zstd:0, Dedup:0, None:0
+[2025-07-31T16:16:20Z INFO  zipllm::restore] 🔄 FT compressed data size: 2293.6 MB
+[2025-07-31T16:16:20Z INFO  zipllm::restore] 🔄 Loading 100 unique tensors + 100 compressed files
+[2025-07-31T16:16:48Z INFO  zipllm::restore] ✅ Batch loading: 162.92 MB/s (28.776s for 4688.171875 MB)
+[2025-07-31T16:16:48Z INFO  zipllm::restore] 🔧 Parallel decompression of 100 tensors...
+[2025-07-31T16:16:49Z INFO  zipllm::restore] ✅ Decompression completed:
+[2025-07-31T16:16:49Z INFO  zipllm::restore]    FT compressed data: 2293.6 MB
+[2025-07-31T16:16:49Z INFO  zipllm::restore]    Total output: 4688.2 MB
+[2025-07-31T16:16:49Z INFO  zipllm::restore]    FT decomp throughput: 7.86 GB/s
+[2025-07-31T16:16:49Z INFO  zipllm::restore] 🚀 Writing 100 tensors using parallel mmap...
+[2025-07-31T16:17:08Z INFO  zipllm::restore] ✅ Writing: 236.30 MB/s (19.840s for 4688.182998657227 MB)
+[2025-07-31T16:17:08Z INFO  zipllm::restore] **📊 File restore summary for 'model-00003-of-00004.safetensors':**
+[2025-07-31T16:17:08Z INFO  zipllm::restore]    Metadata:      0.003s
+[2025-07-31T16:17:08Z INFO  zipllm::restore]    Batch Load:    28.776s (0.16 GB/s)
+[2025-07-31T16:17:08Z INFO  zipllm::restore]    Decompression: 0.285s (7.86 GB/s FT throughput)
+[2025-07-31T16:17:08Z INFO  zipllm::restore]    Writing:       19.840s (0.23 GB/s)
+[2025-07-31T16:17:08Z INFO  zipllm::restore]    Total:         48.904s (0.09 GB/s overall)
+[2025-07-31T16:17:09Z INFO  zipllm::restore] ✅ Restored: model-00003-of-00004.safetensors
+[2025-07-31T16:17:09Z INFO  zipllm::restore] 🔄 Restoring file: model-00002-of-00004.safetensors
+[2025-07-31T16:17:09Z INFO  zipllm::restore] 📦 Batch loading 104 tensors...
+[2025-07-31T16:17:09Z INFO  zipllm::restore] 📈 Compression stats: BitX:104, Zstd:0, Dedup:0, None:0
+[2025-07-31T16:17:09Z INFO  zipllm::restore] 🔄 FT compressed data size: 2353.1 MB
+[2025-07-31T16:17:09Z INFO  zipllm::restore] 🔄 Loading 104 unique tensors + 104 compressed files
+[2025-07-31T16:17:38Z INFO  zipllm::restore] ✅ Batch loading: 162.60 MB/s (29.325s for 4768.171875 MB)
+[2025-07-31T16:17:38Z INFO  zipllm::restore] 🔧 Parallel decompression of 104 tensors...
+[2025-07-31T16:17:38Z INFO  zipllm::restore] ✅ Decompression completed:
+[2025-07-31T16:17:38Z INFO  zipllm::restore]    FT compressed data: 2353.1 MB
+[2025-07-31T16:17:38Z INFO  zipllm::restore]    Total output: 4768.2 MB
+[2025-07-31T16:17:38Z INFO  zipllm::restore]    FT decomp throughput: 8.27 GB/s
+[2025-07-31T16:17:38Z INFO  zipllm::restore] 🚀 Writing 104 tensors using parallel mmap...
+[2025-07-31T16:17:59Z INFO  zipllm::restore] ✅ Writing: 237.33 MB/s (20.091s for 4768.183441162109 MB)
+[2025-07-31T16:17:59Z INFO  zipllm::restore] **📊 File restore summary for 'model-00002-of-00004.safetensors':**
+[2025-07-31T16:17:59Z INFO  zipllm::restore]    Metadata:      0.002s
+[2025-07-31T16:17:59Z INFO  zipllm::restore]    Batch Load:    29.325s (0.16 GB/s)
+[2025-07-31T16:17:59Z INFO  zipllm::restore]    Decompression: 0.278s (8.27 GB/s FT throughput)
+[2025-07-31T16:17:59Z INFO  zipllm::restore]    Writing:       20.091s (0.23 GB/s)
+[2025-07-31T16:17:59Z INFO  zipllm::restore]    Total:         49.695s (0.09 GB/s overall)
+[2025-07-31T16:17:59Z INFO  zipllm::restore] ✅ Restored: model-00002-of-00004.safetensors
+[2025-07-31T16:17:59Z INFO  zipllm::restore] 🔄 Restoring file: model-00004-of-00004.safetensors
+[2025-07-31T16:17:59Z INFO  zipllm::restore] 📦 Batch loading 5 tensors...
+[2025-07-31T16:17:59Z INFO  zipllm::restore] 📈 Compression stats: BitX:5, Zstd:0, Dedup:0, None:0
+[2025-07-31T16:17:59Z INFO  zipllm::restore] 🔄 FT compressed data size: 543.4 MB
+[2025-07-31T16:17:59Z INFO  zipllm::restore] 🔄 Loading 5 unique tensors + 5 compressed files
+[2025-07-31T16:18:06Z INFO  zipllm::restore] ✅ Batch loading: 156.41 MB/s (7.123s for 1114.0234375 MB)
+[2025-07-31T16:18:06Z INFO  zipllm::restore] 🔧 Parallel decompression of 5 tensors...
+[2025-07-31T16:18:07Z INFO  zipllm::restore] ✅ Decompression completed:
+[2025-07-31T16:18:07Z INFO  zipllm::restore]    FT compressed data: 543.4 MB
+[2025-07-31T16:18:07Z INFO  zipllm::restore]    Total output: 1114.0 MB
+[2025-07-31T16:18:07Z INFO  zipllm::restore]    FT decomp throughput: 0.75 GB/s
+[2025-07-31T16:18:07Z INFO  zipllm::restore] 🚀 Writing 5 tensors using parallel mmap...
+[2025-07-31T16:18:11Z INFO  zipllm::restore] ✅ Writing: 246.80 MB/s (4.514s for 1114.0239791870117 MB)
+[2025-07-31T16:18:11Z INFO  zipllm::restore] **📊 File restore summary for 'model-00004-of-00004.safetensors':**
+[2025-07-31T16:18:11Z INFO  zipllm::restore]    Metadata:      0.001s
+[2025-07-31T16:18:11Z INFO  zipllm::restore]    Batch Load:    7.123s (0.15 GB/s)
+[2025-07-31T16:18:11Z INFO  zipllm::restore]    Decompression: 0.711s (0.75 GB/s FT throughput)
+[2025-07-31T16:18:11Z INFO  zipllm::restore]    Writing:       4.514s (0.24 GB/s)
+[2025-07-31T16:18:11Z INFO  zipllm::restore]    Total:         12.349s (0.09 GB/s overall)
+[2025-07-31T16:18:11Z INFO  zipllm::restore] ✅ Restored: model-00004-of-00004.safetensors
+[2025-07-31T16:18:11Z INFO  zipllm::restore] 🎉 Optimized batch restore completed in 162.62s!
+[2025-07-31T16:18:11Z INFO  restore] 🎉 Model restoration completed successfully!
+[2025-07-31T16:18:11Z INFO  restore] 📁 Restored files are available in: /tmp/zipllm_test
+
+================================================================================
+
