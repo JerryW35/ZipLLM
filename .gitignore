@@ -1,0 +1,37 @@
+# Rust
+/target/
+**/*.rs.bk
+/src/bitx/target/
+
+# Base FT
+base_ft.json
+
+# Python
+__pycache__/
+*.py[cod]
+*.so
+*.egg
+*.egg-info/
+dist/
+build/
+venv/
+.env
+
+# IDEs and editors
+*.swp
+*.swo
+*.swn
+*.bak
+*.tmp
+*.vscode/
+.idea/
+.DS_Store
+
+# Logs
+*.log
+
+# Misc
+already_downloads.txt
+
+# models
+/models

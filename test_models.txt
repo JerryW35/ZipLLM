@@ -1,0 +1,5 @@
+meta-llama/Llama-3.1-8B
+meta-llama/Llama-3.1-8B-Instruct
+meta-llama/Llama-Guard-3-8B
+NousResearch/Hermes-3-Llama-3.1-8B
+mlabonne/TwinLlama-3.1-8B

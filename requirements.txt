@@ -1,0 +1,13 @@
+torch 
+safetensors 
+huggingface_hub 
+boto3 
+bs4
+numpy
+tqdm
+pybind11
+zstd
+xxhash
+hf_xet
+matplotlib
+pandas

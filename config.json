@@ -1,0 +1,6 @@
+{
+  "model_dir": "./models",
+  "storage_dir": "/mnt/HF_storage",
+  "models_to_process": "./models/meta-llama_Llama-3.1-8B_clean.txt",
+  "base_ft_path": "./base_ft.json"
+} 
