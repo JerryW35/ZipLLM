@@ -1,6 +1,6 @@
-# ZipLLM - Model Compression System
+# ZipLLM - Efficient LLM Storage via Model-Aware Synergistic Data Deduplication and Compression
 
-A Rust-based model compression system using tensor deduplication, BitX differential compression, and Zstd compression. Achieves high compression ratios for similar machine learning models through intelligent deduplication and differential encoding.
+ZipLLM is an efficient LLM storage system that significantly reduces storage cost through tensor-level deduplication and BitX compression.
 
 ## Quick Start
 
