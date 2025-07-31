@@ -1,5 +1,7 @@
 # ZipLLM - Efficient LLM Storage via Model-Aware Synergistic Data Deduplication and Compression
 
+**Note:** The original experiments in the submitted paper were implemented in Python and C++. Since then, we have been working on reimplementing the same framework using Rust. This repository provides a Rust-based reimplementation of the same algorithms, delivering significantly improved performance via language-level efficiency and optimizations.
+
 ZipLLM is an efficient LLM storage system that significantly reduces storage cost through tensor-level deduplication and BitX compression.
 
 ## Prerequisites
