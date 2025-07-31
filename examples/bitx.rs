@@ -134,4 +134,4 @@ fn compress_data(data: &[u8], level: i32, threads: u32) -> Vec<u8> {
     encoder.write_all(data).expect("Zstd write failed");
     encoder.finish().expect("Zstd finish failed");
     output
-}
+} 

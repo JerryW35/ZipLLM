@@ -15,6 +15,22 @@ set -e  # Exit on any error
 echo "🚀 ZipLLM Test Models Setup"
 echo "=========================="
 
+# Check for HF_TOKEN environment variable
+if [ -z "$HF_TOKEN" ]; then
+    echo "❌ Error: HF_TOKEN environment variable not set!"
+    echo "💡 Please set your Hugging Face token:"
+    echo "   export HF_TOKEN='your_hf_token_here'"
+    exit 1
+fi
+
+# Install Python requirements
+echo "📦 Step 0: Installing Python requirements..."
+echo "==========================================="
+pip install -r requirements.txt || {
+    echo "❌ Failed to install Python requirements"
+    exit 1
+}
+
 # Check if required files exist
 if [ ! -f "test_models.txt" ]; then
     echo "❌ Error: test_models.txt not found!"
@@ -45,8 +61,8 @@ echo ""
 echo "⬇️  Step 1: Downloading test models..."
 echo "======================================"
 
-# Download models from test_models.txt
-python3 py_lib/download.py test_models.txt
+# Download models from test_models.txt with HF_TOKEN
+HF_TOKEN=$HF_TOKEN python3 py_lib/download.py test_models.txt
 
 echo ""
 echo "📊 Step 2: Generating base-finetune mapping..."

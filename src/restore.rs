@@ -144,7 +144,7 @@ impl RestoreEngine {
 
         // Summary stats
         let total_file_duration = metadata_duration + batch_load_duration + decomp_duration + write_duration;
-        info!("📊 File restore summary for '{}':", filename);
+        info!("**📊 File restore summary for '{}':**", filename);
         info!("   Metadata:      {:.3}s", metadata_duration.as_secs_f64());
         info!("   Batch Load:    {:.3}s ({:.2} GB/s)", 
               batch_load_duration.as_secs_f64(),
