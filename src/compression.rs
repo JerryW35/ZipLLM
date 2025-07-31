@@ -223,7 +223,7 @@ impl CompressionEngine {
         debug!("Compressing solo tensor: {} ({} bytes)", tensor.name, tensor_data.len());
         
         // Perform Zstd compression in parallel
-        let compressed_data = zstd_compress_data(&tensor_data, 3, 16);
+        let compressed_data = zstd_compress_data(&tensor_data, 3);
         
         let original_size = tensor_data.len() as u64;
         let compressed_size = compressed_data.len() as u64;
@@ -276,7 +276,7 @@ impl CompressionEngine {
             .zip(tensor_data.par_iter())
             .map(|(pair, (base_data, finetune_data))| {
                 // Compress the pair
-                let (compressed_exp, compressed_sm) = bitx_compress(base_data, finetune_data, 16);
+                let (compressed_exp, compressed_sm) = bitx_compress(base_data, finetune_data);
                 
                 // Combine compressed data with pre-allocation
                 let total_size = 8 + compressed_exp.len() + compressed_sm.len();

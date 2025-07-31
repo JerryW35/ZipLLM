@@ -3,8 +3,9 @@ use zstd::stream::{Encoder, Decoder};
 use std::io::{Write, Read};
 use std::time::Instant;
 use log::{debug};
+use crate::config::CONFIG;
 
-pub fn bitx_compress(data1: &[u8], data2: &[u8], threads: usize) -> (Vec<u8>, Vec<u8>) {
+pub fn bitx_compress(data1: &[u8], data2: &[u8]) -> (Vec<u8>, Vec<u8>) {
     let min_len = std::cmp::min(data1.len(), data2.len()) & !1;
     assert!(min_len >= 2, "Input files too small");
     let chunk_count = min_len / 2;
@@ -46,8 +47,8 @@ pub fn bitx_compress(data1: &[u8], data2: &[u8], threads: usize) -> (Vec<u8>, Ve
     // Step 3: compress in parallel using join
     let zstd_start = Instant::now();
     let (compressed_exp, compressed_sm): (Vec<u8>, Vec<u8>) = rayon::join(
-        || zstd_compress_data(&exp_output, 3, threads),
-        || zstd_compress_data(&sm_output, 3, threads),
+        || zstd_compress_data(&exp_output, 3),
+        || zstd_compress_data(&sm_output, 3),
     );
     let _zstd_time = zstd_start.elapsed();
     debug!("XOR Time: {:.3}s", _xor_time.as_secs_f64());
@@ -95,10 +96,10 @@ pub fn bitx_decompress(data1: &[u8], compressed_exp: &[u8], compressed_sm: &[u8]
 }
 
 /// ZSTD compression (supports multithreading)
-pub fn zstd_compress_data(data: &[u8], level: i32, threads: usize) -> Vec<u8> {
+pub fn zstd_compress_data(data: &[u8], level: i32) -> Vec<u8> {
     let mut output = Vec::with_capacity(data.len() / 3); // Estimated compression ratio
     let mut encoder = Encoder::new(&mut output, level).expect("Zstd encoder failed");
-    encoder.multithread(threads as u32).expect("Failed to set threads");
+    encoder.multithread(CONFIG.threads as u32).expect("Failed to set threads");
     encoder.write_all(data).expect("Write failed");
     encoder.finish().expect("Finish failed");
     output
@@ -135,7 +136,7 @@ mod tests {
 
         // throughput
         let start: Instant = Instant::now();
-        let (_compressed_exp, _compressed_sm) = bitx_compress(&data1, &data2,48);
+        let (_compressed_exp, _compressed_sm) = bitx_compress(&data1, &data2);
         let end = Instant::now();
         let duration = end.duration_since(start);
         println!("Throughput: {} GB/s", 3.0 / duration.as_secs_f64());
@@ -151,7 +152,7 @@ mod tests {
         rng.fill(&mut data1[..]);
         rng.fill(&mut data2[..]);
         
-        let (compressed_exp, compressed_sm) = bitx_compress(&data1, &data2,48);
+        let (compressed_exp, compressed_sm) = bitx_compress(&data1, &data2);
         let decompressed = bitx_decompress(&data1, &compressed_exp, &compressed_sm);
         //check if decompressed is equal to data2, don't use assert_eq! because it will print the whole vectors
         for i in 0..size {
@@ -173,7 +174,7 @@ mod tests {
         rng.fill(&mut data2[..]);
 
         let start = Instant::now();
-        let (compressed_exp, compressed_sm) = bitx_compress(&data1, &data2, 48);
+        let (compressed_exp, compressed_sm) = bitx_compress(&data1, &data2);
         let duration = start.elapsed();
         println!("Compression Throughput: {:.2} GB/s", size as f64 / 1e9 / duration.as_secs_f64());
 
@@ -206,7 +207,7 @@ mod tests {
         );
 
         let start = Instant::now();
-        let (compressed_exp, compressed_sm) = bitx_compress(&data1, &data2, 48);
+        let (compressed_exp, compressed_sm) = bitx_compress(&data1, &data2);
         let duration = start.elapsed();
         println!(
             "Compression Throughput: {:.2} GB/s",

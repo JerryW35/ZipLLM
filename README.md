@@ -4,6 +4,21 @@ ZipLLM is an efficient LLM storage system that significantly reduces storage cos
 
 ## Prerequisites
 
+### Device Requirements
+
+⚠️ **Important**: ZipLLM requires substantial memory resources for processing large language models.
+
+**Tested Environment:**
+- **Platform**: AWS EC2 c5.12xlarge instance
+- **Memory**: 96GB RAM
+- **vCPUs**: 48 cores
+- **Storage**: High-performance SSD storage
+
+**⚠️ Memory Warning**: 
+- Models with insufficient memory may cause the program to crash during processing
+- Large language models (7B+ parameters) require significant RAM for tensor operations
+- Consider using smaller models or adding swap space if you have limited memory
+
 ### Install Rust
 ```bash
 # Install Rust (if not already installed)
@@ -97,16 +112,24 @@ zipllm_rust/
 
 ## Configuration
 
-Edit `config.json` to customize paths:
+Edit `config.json` to customize paths and performance settings:
 
 ```json
 {
   "model_dir": "./models",
-  "storage_dir": "/mnt/HF_storage",
-  "models_to_process": "./models/models.txt",
-  "base_ft_path": "./models/base_ft.json"
+  "storage_dir": "/mnt/HF_storage", 
+  "models_to_process": "./test_models.txt",
+  "base_ft_path": "./base_ft.json",
+  "threads": 48
 }
 ```
+
+**Configuration Options:**
+- `model_dir`: Directory containing downloaded models
+- `storage_dir`: Directory for compressed tensor storage  
+- `models_to_process`: Text file listing models to process
+- `base_ft_path`: JSON file mapping base models to finetunes
+- `threads`: Number of parallel threads (auto-detects system max if not specified)
 
 ## BitX Standalone Tool
 

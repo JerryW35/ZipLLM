@@ -9,6 +9,7 @@ pub struct AppConfig {
     pub storage_dir: String,
     pub models_to_process: String,
     pub base_ft_path: String,
+    pub threads: usize,
 }
 
 impl AppConfig {
@@ -25,6 +26,7 @@ impl AppConfig {
                         info!("  Storage directory: {}", config.storage_dir);
                         info!("  Models file: {}", config.models_to_process);
                         info!("  Base FT mapping: {}", config.base_ft_path);
+                        info!("  Threads: {}", config.threads);
                         config
                     }
                     Err(e) => {
@@ -46,11 +48,16 @@ impl AppConfig {
 
 impl Default for AppConfig {
     fn default() -> Self {
+        let threads = std::thread::available_parallelism()
+            .map(|n| n.get())
+            .unwrap_or(1);
+            
         Self {
             model_dir: "models".to_string(),
             storage_dir: "/mnt/HF_storage".to_string(),
-            models_to_process: "./models/meta-llama_Llama-3.1-8B_clean.txt".to_string(),
+            models_to_process: "./test_models.txt".to_string(),
             base_ft_path: "./base_ft.json".to_string(),
+            threads,
         }
     }
 }
