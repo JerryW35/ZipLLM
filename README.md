@@ -118,7 +118,7 @@ cargo build --release --example bitx
 ```
 
 ## Important Notes
-
+- **Support Dtype**:⚠️ Current version only supports BF16.
 - **Logging**: Use `RUST_LOG=info` to see runtime progress and performance metrics
 - **Test Models**: First line in `test_models.txt` must be the base model
 - **Model IDs**: Use real Hugging Face format (`org/model-name`) - automatic conversion to storage format
