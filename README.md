@@ -77,7 +77,6 @@ Test restore performance across different thread counts:
 
 ```bash
 cd analysis
-
 # Run experiments with different thread counts
 python3 throughput_analysis.py --threads 1 2 4 8 16 32 48
 
@@ -86,14 +85,17 @@ python3 throughput_analysis.py --analyze-only
 
 # Run experiments and analyze results automatically
 python3 throughput_analysis.py --threads 1 4 8 16 --analyze
+
+# Optionally drop system caches before each run (requires sudo)
+python3 throughput_analysis.py --threads 1 2 4 --drop-cache
 ```
 
 Features:
-- Automatically clears system cache before each experiment
 - Tests restore performance with different thread configurations  
 - Generates CSV reports and visualization plots
 - Shows throughput vs thread count relationships
 - Analyzes threading efficiency compared to single-thread baseline
+- Optionally clears system cache before each experiment when using `--drop-cache`
 
 ## Project Structure
 

@@ -4,7 +4,7 @@ ZipLLM Restore Performance Analysis Tool
 ========================================
 
 This script runs restore experiments with different thread counts,
-clears cache before each run, and analyzes the throughput results.
+optionally clears cache before each run, and analyzes the throughput results.
 
 Requirements:
 - Rust project built with --release
@@ -14,7 +14,7 @@ Requirements:
 
 Features:
 - Runs single restore experiment per thread count
-- Clears system cache before each experiment
+- Optionally clears system cache before each experiment (--drop-cache)
 - Saves outputs to threads_*.txt files
 - Parses decompression throughput from log files
 - Generates CSV reports with statistics
@@ -24,7 +24,7 @@ Features:
 Usage:
     python3 throughput_analysis.py --threads 1 2 4 8 16 32 48
     python3 throughput_analysis.py --analyze-only
-    python3 throughput_analysis.py --threads 1 4 8 --model "bambisheng_UltraIF-8B-SFT" --output "/tmp/zipllm_test"
+    python3 throughput_analysis.py --threads 1 4 8 --model "meta-llama_Llama-3.1-8B-Instruct" --output "/tmp/zipllm_test"
 """
 
 import os
@@ -57,15 +57,16 @@ def clear_system_cache():
         print(f"❌ Error clearing cache: {e}")
         return False
 
-def run_restore_experiment(threads, model_id, output_path):
+def run_restore_experiment(threads, model_id, output_path, drop_cache=False):
     """Run restore experiment with specified thread count"""
     print(f"\n🚀 Running restore experiment with {threads} threads...")
     print(f"📦 Model: {model_id}")
     print(f"📁 Output: {output_path}")
     
-    # Clear cache before experiment
-    if not clear_system_cache():
-        print("⚠️  Continuing without cache clear...")
+    # Clear cache before experiment if requested
+    if drop_cache:
+        if not clear_system_cache():
+            print("⚠️  Continuing without cache clear...")
     
     # Prepare environment
     env = os.environ.copy()
@@ -160,7 +161,7 @@ def run_restore_experiment(threads, model_id, output_path):
     
     return result is not None and result.returncode == 0
 
-def run_experiments(thread_counts, model_id, output_path):
+def run_experiments(thread_counts, model_id, output_path, drop_cache=False):
     """Run experiments for all specified thread counts"""
     print("🔬 Starting ZipLLM Restore Performance Experiments")
     print("="*60)
@@ -184,7 +185,7 @@ def run_experiments(thread_counts, model_id, output_path):
     for i, threads in enumerate(thread_counts):
         print(f"\n🧪 Experiment {i+1}/{total_experiments}: Testing {threads} threads")
         
-        if run_restore_experiment(threads, model_id, output_path):
+        if run_restore_experiment(threads, model_id, output_path, drop_cache):
             successful_experiments += 1
         else:
             print(f"❌ Experiment with {threads} threads failed!")
@@ -436,9 +437,9 @@ Examples:
   # Run experiments with different thread counts
   python3 throughput_analysis.py --threads 1 2 4 8 16 32 48
   
-  # Run experiments with custom model and output
-  python3 throughput_analysis.py --threads 1 4 8 --model "your_model_id" --output "/your/output/path"
-  
+  # Run experiments with cache clearing
+  python3 throughput_analysis.py --threads 1 2 4 8 --drop-cache
+
   # Only analyze existing results
   python3 throughput_analysis.py --analyze-only
   
@@ -449,14 +450,16 @@ Examples:
     
     parser.add_argument('--threads', type=int, nargs='+', 
                        help='Thread counts to test (e.g., --threads 1 2 4 8 16 32 48)')
-    parser.add_argument('--model', type=str, default='bambisheng_UltraIF-8B-SFT',
-                       help='Model ID to restore (default: bambisheng_UltraIF-8B-SFT)')
+    parser.add_argument('--model', type=str, default='meta-llama_Llama-3.1-8B-Instruct',
+                       help='Model ID to restore (default: meta-llama_Llama-3.1-8B-Instruct)')
     parser.add_argument('--output', type=str, default='/tmp/zipllm_test',
                        help='Output path for restored model (default: /tmp/zipllm_test)')
     parser.add_argument('--analyze-only', action='store_true',
                        help='Only analyze existing results, do not run experiments')
     parser.add_argument('--analyze', action='store_true',
                        help='Run analysis after experiments')
+    parser.add_argument('--drop-cache', action='store_true',
+                       help='Clear system cache before each experiment (default: False)')
     
     args = parser.parse_args()
     
@@ -490,7 +493,8 @@ Examples:
         success = run_experiments(
             thread_counts=args.threads,
             model_id=args.model,
-            output_path=args.output
+            output_path=args.output,
+            drop_cache=args.drop_cache
         )
         
         if not success:
