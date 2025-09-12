@@ -10,12 +10,12 @@ fn main() -> Result<()> {
 
     let args: Vec<String> = env::args().collect();
     
-    if args.len() != 3 {
-        eprintln!("Usage: {} <model_id> <output_directory>", args[0]);
+    if args.len() != 4 {
+        eprintln!("Usage: {} <config_path> <model_id> <output_directory>", args[0]);
         eprintln!();
         eprintln!("Examples:");
-        eprintln!("  {} NousResearch_DeepHermes-3-Llama-3-8B-Preview ./restored_models", args[0]);
-        eprintln!("  {} meta-llama_Llama-3.1-8B ./output", args[0]);
+        eprintln!("  {} ./config.json NousResearch_DeepHermes-3-Llama-3-8B-Preview ./restored_models", args[0]);
+        eprintln!("  {} ./config.json meta-llama_Llama-3.1-8B ./output", args[0]);
         eprintln!();
         eprintln!("Performance Monitoring:");
         eprintln!("  Set RUST_LOG=debug to see detailed performance metrics");
@@ -28,8 +28,12 @@ fn main() -> Result<()> {
         std::process::exit(1);
     }
 
-    let raw_model_id = &args[1];
-    let output_dir = &args[2];
+    // Initialize config from specified path
+    let config_path = &args[1];
+    config::set_config(config_path);
+    
+    let raw_model_id = &args[2];
+    let output_dir = &args[3];
     
     // Convert real model ID (e.g., "meta-llama/Llama-Guard-3-8B") to storage format (e.g., "meta-llama_Llama-Guard-3-8B")
     let model_id = if let Some(pos) = raw_model_id.find('/') {
@@ -57,7 +61,7 @@ fn main() -> Result<()> {
     // Check if model exists
     if !storage.exists_model(&model_id) {
         error!("❌ Model '{model_id}' not found in storage!");
-        error!("Available models can be found in: {}", config::CONFIG.storage_dir);
+        error!("Available models can be found in: {}", config::CONFIG.get_storage_dir().display());
         std::process::exit(1);
     }
 

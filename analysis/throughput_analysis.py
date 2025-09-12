@@ -22,9 +22,9 @@ Features:
 - Shows threading efficiency analysis
 
 Usage:
-    python3 throughput_analysis.py --threads 1 2 4 8 16 32 48
-    python3 throughput_analysis.py --analyze-only
-    python3 throughput_analysis.py --threads 1 4 8 --model "meta-llama_Llama-3.1-8B-Instruct" --output "/tmp/zipllm_test"
+    python3 throughput_analysis.py --threads 1 2 4 8 16 32 48 --config "../config.json"
+    python3 throughput_analysis.py --analyze-only --config "../config.json"
+    python3 throughput_analysis.py --threads 1 4 8 --model "meta-llama_Llama-3.1-8B-Instruct" --output "/tmp/zipllm_test" --config "../config.json"
 """
 
 import os
@@ -38,6 +38,7 @@ import csv
 import glob
 import matplotlib.pyplot as plt
 import pandas as pd
+from pathlib import Path
 
 def clear_system_cache():
     """Clear system cache using sudo"""
@@ -57,7 +58,9 @@ def clear_system_cache():
         print(f"❌ Error clearing cache: {e}")
         return False
 
-def run_restore_experiment(threads, model_id, output_path, drop_cache=False):
+def run_restore_experiment(threads, model_id, output_path, config_path, drop_cache=False):
+    # Convert config_path to absolute path if it's relative
+    abs_config_path = os.path.abspath(config_path)
     """Run restore experiment with specified thread count"""
     print(f"\n🚀 Running restore experiment with {threads} threads...")
     print(f"📦 Model: {model_id}")
@@ -76,6 +79,7 @@ def run_restore_experiment(threads, model_id, output_path, drop_cache=False):
     # Prepare command
     restore_cmd = [
         '../target/release/restore',
+        abs_config_path,
         model_id,
         output_path
     ]
@@ -161,7 +165,7 @@ def run_restore_experiment(threads, model_id, output_path, drop_cache=False):
     
     return result is not None and result.returncode == 0
 
-def run_experiments(thread_counts, model_id, output_path, drop_cache=False):
+def run_experiments(thread_counts, model_id, output_path, config_path, drop_cache=False):
     """Run experiments for all specified thread counts"""
     print("🔬 Starting ZipLLM Restore Performance Experiments")
     print("="*60)
@@ -185,7 +189,7 @@ def run_experiments(thread_counts, model_id, output_path, drop_cache=False):
     for i, threads in enumerate(thread_counts):
         print(f"\n🧪 Experiment {i+1}/{total_experiments}: Testing {threads} threads")
         
-        if run_restore_experiment(threads, model_id, output_path, drop_cache):
+        if run_restore_experiment(threads, model_id, output_path, config_path, drop_cache):
             successful_experiments += 1
         else:
             print(f"❌ Experiment with {threads} threads failed!")
@@ -435,16 +439,16 @@ def main():
         epilog="""
 Examples:
   # Run experiments with different thread counts
-  python3 throughput_analysis.py --threads 1 2 4 8 16 32 48
+  python3 throughput_analysis.py --threads 1 2 4 8 16 32 48 --config "../config.json"
   
   # Run experiments with cache clearing
-  python3 throughput_analysis.py --threads 1 2 4 8 --drop-cache
+  python3 throughput_analysis.py --threads 1 2 4 8 --drop-cache --config "../config.json"
 
   # Only analyze existing results
-  python3 throughput_analysis.py --analyze-only
+  python3 throughput_analysis.py --analyze-only --config "../config.json"
   
   # Run experiments and then analyze
-  python3 throughput_analysis.py --threads 1 4 8 16 --analyze
+  python3 throughput_analysis.py --threads 1 4 8 16 --analyze --config "../config.json"
         """
     )
     
@@ -454,6 +458,8 @@ Examples:
                        help='Model ID to restore (default: meta-llama_Llama-3.1-8B-Instruct)')
     parser.add_argument('--output', type=str, default='/tmp/zipllm_test',
                        help='Output path for restored model (default: /tmp/zipllm_test)')
+    parser.add_argument('--config', type=str, required=True,
+                       help='Path to config.json file (required) - will be converted to absolute path')
     parser.add_argument('--analyze-only', action='store_true',
                        help='Only analyze existing results, do not run experiments')
     parser.add_argument('--analyze', action='store_true',
@@ -494,6 +500,7 @@ Examples:
             thread_counts=args.threads,
             model_id=args.model,
             output_path=args.output,
+            config_path=args.config,
             drop_cache=args.drop_cache
         )
         

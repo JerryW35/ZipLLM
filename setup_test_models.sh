@@ -62,7 +62,7 @@ echo "⬇️  Step 1: Downloading test models..."
 echo "======================================"
 
 # Download models from test_models.txt with HF_TOKEN
-HF_TOKEN=$HF_TOKEN python3 py_lib/download.py --models_txts test_models.txt --output_dir "$MODEL_DIR"
+HF_TOKEN=$HF_TOKEN python3 py_lib/download.py --models_txts test_models.txt --output_dir "$MODEL_DIR" 
 
 echo ""
 echo "📊 Step 2: Generating base-finetune mapping..."

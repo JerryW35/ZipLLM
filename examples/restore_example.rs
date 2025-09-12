@@ -1,5 +1,6 @@
 use zipllm::*;
 use std::sync::Arc;
+use std::env;
 use log::{info, error};
 
 fn main() -> Result<()> {
@@ -7,6 +8,18 @@ fn main() -> Result<()> {
     env_logger::Builder::from_default_env()
         .filter_level(log::LevelFilter::Info)
         .init();
+
+    // Get config path from command line arguments
+    let args: Vec<String> = env::args().collect();
+    if args.len() < 2 {
+        error!("Config path must be specified as the first argument");
+        error!("Usage: {} <config_path>", args[0]);
+        return Err("Missing config path argument".into());
+    }
+    
+    // Initialize config from specified path
+    let config_path = &args[1];
+    config::set_config(config_path);
 
     info!("ZipLLM Restore Example");
 

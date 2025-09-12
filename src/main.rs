@@ -1,6 +1,7 @@
 use zipllm::*;
 use std::sync::Arc;
 use std::fs;
+use std::env;
 use log::{info, warn, error, debug};
 
 fn main() -> Result<()> {
@@ -8,6 +9,18 @@ fn main() -> Result<()> {
     env_logger::Builder::from_default_env()
         .init();
 
+    // Get config path from command line arguments
+    let args: Vec<String> = env::args().collect();
+    if args.len() < 2 {
+        error!("Config path must be specified as the first argument");
+        error!("Usage: {} <config_path>", args[0]);
+        return Err("Missing config path argument".into());
+    }
+    
+    // Initialize config from specified path
+    let config_path = &args[1];
+    config::set_config(config_path);
+    
     info!("Starting ZipLLM - Processing all models...");
     
     // Create pipeline
@@ -16,8 +29,8 @@ fn main() -> Result<()> {
     let pipeline = pipeline::ZipLLMPipeline::new(storage.clone(), hasher)?;
     
     // Read models from the txt file
-    let models_file_path = CONFIG.models_to_process.clone();
-    info!("Reading models from: {models_file_path}");
+    let models_file_path = CONFIG.get_models_to_process();
+    info!("Reading models from: {}", models_file_path.display());
     
     let models = match fs::read_to_string(&models_file_path) {
         Ok(content) => {
@@ -35,7 +48,7 @@ fn main() -> Result<()> {
                 .collect::<Vec<String>>()
         }
         Err(e) => {
-            error!("Failed to read models file {models_file_path}: {e}");
+            error!("Failed to read models file {}: {e}", models_file_path.display());
             return Err(e.into());
         }
     };

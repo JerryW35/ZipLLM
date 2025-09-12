@@ -59,13 +59,14 @@ cargo build --release
 
 ### 3. Run Model Compression
 ```bash
-RUST_LOG=info ./target/release/zipllm
+# Run with config path (required)
+RUST_LOG=info ./target/release/zipllm ./config.json
 ```
 
 ### 4. Restore Models
 ```bash
-# Restore using real model ID format
-RUST_LOG=info ./target/release/restore meta-llama/Llama-3.1-8B-Instruct /tmp/output
+# Restore using real model ID format (config path is required)
+RUST_LOG=info ./target/release/restore ./config.json meta-llama/Llama-3.1-8B-Instruct /tmp/output
 
 # Verify restoration
 ls -la /tmp/output/
@@ -77,17 +78,17 @@ Test restore performance across different thread counts:
 
 ```bash
 cd analysis
-# Run experiments with different thread counts
-python3 throughput_analysis.py --threads 1 2 4 8 16 32 48
+# Run experiments with different thread counts (config path is required)
+python3 throughput_analysis.py --threads 1 2 4 8 16 32 48 --config "../config.json"
 
 # Only analyze existing results
-python3 throughput_analysis.py --analyze-only
+python3 throughput_analysis.py --analyze-only --config "../config.json"
 
 # Run experiments and analyze results automatically
-python3 throughput_analysis.py --threads 1 4 8 16 --analyze
+python3 throughput_analysis.py --threads 1 4 8 16 --analyze --config "../config.json"
 
 # Optionally drop system caches before each run (requires sudo)
-python3 throughput_analysis.py --threads 1 2 4 --drop-cache
+python3 throughput_analysis.py --threads 1 2 4 --drop-cache --config "../config.json"
 ```
 
 Features:
@@ -146,7 +147,14 @@ Edit `config.json` to customize paths and performance settings:
 - `base_ft_path`: JSON file mapping base models to finetunes
 - `threads`: Number of parallel threads (auto-detects system max if not specified)
 
-## BitX Standalone Tool
+**Important Path Resolution:**
+- All paths in the config file are resolved relative to the config file's location, not the current working directory
+- This means you can run commands from any directory and the paths will still work correctly
+- For example, when running from the `analysis` directory with `--config "../config.json"`, paths like `./models` will be resolved relative to the parent directory
+
+## Examples and Tools
+
+### BitX Standalone Tool
 
 ```bash
 # Build and use BitX for file compression
@@ -156,8 +164,10 @@ cargo build --release --example bitx
 ```
 
 ## Important Notes
-- **Support Dtype**:⚠️ Current version only supports BF16.
+- **Config Path Required**: All commands now require specifying a config path as the first argument
+- **Support Dtype**:⚠️ Current version only supports BF16
 - **Logging**: Use `RUST_LOG=info` to see runtime progress and performance metrics
 - **Test Models**: First line in `test_models.txt` must be the base model
 - **Model IDs**: Use real Hugging Face format (`org/model-name`) - automatic conversion to storage format
-- **HF_token**: To download models, don't forget to set your HF_token in the enviroments.
+- **HF_token**: To download models, don't forget to set your HF_token in the environments
+- **Path Resolution**: All paths in config.json are resolved relative to the config file's location

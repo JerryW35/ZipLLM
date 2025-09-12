@@ -15,7 +15,7 @@ pub struct FileSystemStorage {
 
 impl FileSystemStorage {
     pub fn new() -> Result<Self> {
-        let base_path = PathBuf::from(CONFIG.storage_dir.clone());
+        let base_path = CONFIG.get_storage_dir();
         
         // Create directories if they don't exist
         fs::create_dir_all(&base_path)?;
