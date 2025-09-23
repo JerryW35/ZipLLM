@@ -1,0 +1,5 @@
+{
+  "output_root": "./results",
+  "model_root": "../models",
+  "fastcdc_avg_size": 65536
+}

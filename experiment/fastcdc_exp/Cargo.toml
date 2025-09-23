@@ -1,0 +1,10 @@
+[package]
+name = "fastcdc_exp"
+version = "0.1.0"
+edition = "2021"
+
+[dependencies]
+clap = { version = "4", features = ["cargo"] }
+fastcdc = "3.2.1"
+memmap2 = "0.9"
+blake3 = "1"
