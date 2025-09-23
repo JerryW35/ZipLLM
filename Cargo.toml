@@ -11,9 +11,14 @@ path = "src/main.rs"
 name = "restore"
 path = "src/bin/restore.rs"
 
+[[bin]]
+name = "benchmark_bitx"
+path = "examples/benchmark_bitx.rs"
+
 [[example]]
 name = "bitx"
 path = "examples/bitx.rs"
+
 
 [dependencies]
 safetensors = "0.6.0"

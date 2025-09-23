@@ -74,21 +74,23 @@ ls -la /tmp/output/
 
 ## Performance Testing
 
+### Restore Performance Testing
+
 Test restore performance across different thread counts:
 
 ```bash
 cd analysis
 # Run experiments with different thread counts (config path is required)
-python3 throughput_analysis.py --threads 1 2 4 8 16 32 48 --config "../config.json"
+python3 restore_throughput_analysis.py --threads 1 2 4 8 16 32 48 --config "../config.json"
 
 # Only analyze existing results
-python3 throughput_analysis.py --analyze-only --config "../config.json"
+python3 restore_throughput_analysis.py --analyze-only --config "../config.json"
 
 # Run experiments and analyze results automatically
-python3 throughput_analysis.py --threads 1 4 8 16 --analyze --config "../config.json"
+python3 restore_throughput_analysis.py --threads 1 4 8 16 --analyze --config "../config.json"
 
 # Optionally drop system caches before each run (requires sudo)
-python3 throughput_analysis.py --threads 1 2 4 --drop-cache --config "../config.json"
+python3 restore_throughput_analysis.py --threads 1 2 4 --drop-cache --config "../config.json"
 ```
 
 Features:
@@ -97,6 +99,59 @@ Features:
 - Shows throughput vs thread count relationships
 - Analyzes threading efficiency compared to single-thread baseline
 - Optionally clears system cache before each experiment when using `--drop-cache`
+
+### Compression Throughput Analysis
+
+Benchmark BitX compression performance with different thread counts:
+
+```bash
+cd analysis
+# Run compression benchmark with thread count variations
+python3 compression_throughput_analysis.py /path/to/base/model /path/to/finetune/model
+
+# Specify thread counts to test
+python3 compression_throughput_analysis.py /path/to/base/model /path/to/finetune/model --threads 1,4,8,16,32
+
+# Skip decompression test
+python3 compression_throughput_analysis.py /path/to/base/model /path/to/finetune/model --no-decompress
+
+# Custom output prefix for result files
+python3 compression_throughput_analysis.py /path/to/base/model /path/to/finetune/model --output custom_prefix
+
+# Run each test multiple times
+python3 compression_throughput_analysis.py /path/to/base/model /path/to/finetune/model --repeat 3
+```
+
+Features:
+- Measures BitX compression and decompression throughput
+- Tests multiple thread configurations
+- Generates CSV reports with detailed metrics
+- Creates throughput vs thread count plots
+- Validates bit-exact decompression
+
+## Experiments
+
+### FastCDC and ZipNN Experiments
+
+Run content-defined chunking and neural network compression experiments:
+
+```bash
+cd experiment
+# Configure paths in config.json
+vim config.json
+
+# Run both FastCDC chunking and ZipNN compression
+python3 run_exp.py
+
+# View results and get figures 
+jupyter notebook plots.ipynb
+```
+
+Features:
+- Processes safetensors files with FastCDC content-defined chunking
+- Compresses models with ZipNN compression
+- Saves results for later analysis
+- Visualizes data reduction ratios with plots.ipynb
 
 ## Project Structure
 
@@ -114,8 +169,14 @@ zipllm_rust/
 ├── examples/
 │   ├── bitx.rs                # Standalone BitX tool
 │   └── restore_example.rs     # API usage example
+├── experiment/
+│   ├── run_exp.py             # Run FastCDC and ZipNN experiments
+│   ├── zipnn_exp.py           # ZipNN compression tool
+│   ├── fastcdc_exp/           # FastCDC chunking implementation
+│   └── plots.ipynb            # Visualization notebook for results
 ├── analysis/
-│   └── throughput_analysis.py  # Performance testing & analysis
+│   ├── restore_throughput_analysis.py # Restore performance testing
+│   └── compression_throughput_analysis.py # Compression benchmarking
 ├── py_lib/
 │   ├── download.py            # Model downloader
 │   └── generate_base_ft.py    # Base-finetune mapper
@@ -128,16 +189,18 @@ zipllm_rust/
 
 ## Configuration
 
+### Main Configuration
+
 Edit `config.json` to customize paths and performance settings:
 
 ```json
 {
   "model_dir": "./models",
-  "storage_dir": "/mnt/HF_storage", 
+  "storage_dir": "./HF_storage",
   "models_to_process": "./test_models.txt",
   "base_ft_path": "./base_ft.json",
   "threads": 48
-}
+} 
 ```
 
 **Configuration Options:**
@@ -151,6 +214,23 @@ Edit `config.json` to customize paths and performance settings:
 - All paths in the config file are resolved relative to the config file's location, not the current working directory
 - This means you can run commands from any directory and the paths will still work correctly
 - For example, when running from the `analysis` directory with `--config "../config.json"`, paths like `./models` will be resolved relative to the parent directory
+
+### Experiment Configuration
+
+Edit `experiment/config.json` for FastCDC and ZipNN experiments:
+
+```json
+{
+  "output_root": "./results",
+  "model_root": "../models",
+  "fastcdc_avg_size": 65536
+}
+```
+
+**Experiment Configuration Options:**
+- `output_root`: Directory for experiment output files
+- `model_root`: Directory containing safetensors files to process
+- `fastcdc_avg_size`: Average chunk size for FastCDC (in bytes)
 
 ## Examples and Tools
 

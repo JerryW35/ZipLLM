@@ -1,9 +1,3 @@
-fn main() {
-    println!("Hello, world!");
-}
-//
-// Copyright (c) 2023 Nathan Fiedler
-//
 use clap::{Arg, arg, command, value_parser};
 use fastcdc::v2020::*;
 use std::fs::File;

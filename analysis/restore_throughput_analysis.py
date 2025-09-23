@@ -149,6 +149,14 @@ def run_restore_experiment(threads, model_id, output_path, config_path, drop_cac
     
     # Save output to file
     try:
+        # Create results directory if it doesn't exist
+        results_dir = Path("results")
+        results_dir.mkdir(exist_ok=True)
+        
+        # Save to results directory
+        output_file_path = results_dir / f"threads_{threads}.txt"
+        output_file = str(output_file_path)
+        
         with open(output_file, 'w', encoding='utf-8') as f:
             f.write(f"# ZipLLM Restore Experiment Results\n")
             f.write(f"# Model: {model_id}\n")
@@ -251,12 +259,14 @@ def analyze_throughput_data():
     """Analyze throughput data from all txt files"""
     print("\n🔍 Analyzing throughput data from txt files...")
     
-    # Look for all threads_*.txt files in parent directory
-    txt_files = glob.glob("../threads_*.txt")
+    # Look for all threads_*.txt files in results directory
+    results_dir = Path("results")
+    results_dir.mkdir(exist_ok=True)
+    txt_files = glob.glob(str(results_dir / "threads_*.txt"))
     
     if not txt_files:
-        print("❌ No threads_*.txt files found in parent directory!")
-        print("💡 Make sure to run this script from the analysis/ subdirectory")
+        print("❌ No threads_*.txt files found in results directory!")
+        print("💡 Make sure to run experiments first or check the results directory")
         return
     
     print(f"📄 Found {len(txt_files)} files: {txt_files}")
@@ -300,7 +310,9 @@ def analyze_throughput_data():
     results.sort(key=lambda x: x['threads'])
     
     # Generate CSV file
-    csv_filename = "decompression_throughput_analysis.csv"
+    results_dir = Path("results")
+    results_dir.mkdir(exist_ok=True)
+    csv_filename = results_dir / "decompression_throughput_analysis.csv"
     with open(csv_filename, 'w', newline='', encoding='utf-8') as csvfile:
         fieldnames = ['threads', 'avg_throughput', 'min_throughput', 'max_throughput', 'num_records']
         writer = csv.DictWriter(csvfile, fieldnames=fieldnames)
@@ -376,7 +388,9 @@ def create_throughput_plot(results):
     plt.tight_layout()
     
     # Save plot
-    plot_filename = "decompression_throughput_analysis.png"
+    results_dir = Path("results")
+    results_dir.mkdir(exist_ok=True)
+    plot_filename = results_dir / "decompression_throughput_analysis.png"
     plt.savefig(plot_filename, dpi=300, bbox_inches='tight')
     print(f"📈 Plot saved to: {plot_filename}")
     

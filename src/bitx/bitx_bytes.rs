@@ -2,8 +2,9 @@ use rayon::prelude::*;
 use zstd::stream::{Encoder, Decoder};
 use std::io::{Write, Read};
 use std::time::Instant;
-use log::{debug};
+use log::debug;
 use crate::config::CONFIG;
+use anyhow::Result;
 
 pub fn bitx_compress(data1: &[u8], data2: &[u8]) -> (Vec<u8>, Vec<u8>) {
     let min_len = std::cmp::min(data1.len(), data2.len()) & !1;
@@ -113,11 +114,228 @@ pub fn zstd_decompress_data(data: &[u8]) -> Vec<u8> {
     decompressed
 }
 
-// test
+// optimized version 
+/// BitX transform function that only returns the separated exponent and sign_mantissa arrays
+pub fn bitx_transform_only(data1: &[u8], data2: &[u8]) -> Result<(Vec<u8>, Vec<u8>)> {
+    let min_len = std::cmp::min(data1.len(), data2.len()) & !1;
+    if min_len < 2 { return Err(anyhow::anyhow!("Input data too small for bitx transform")); }
+    let pair_count = min_len / 2;
+    let mut exp_output = vec![0u8; pair_count];
+    let mut sm_output = vec![0u8; pair_count];
+
+    let chunk_size = {
+        let bytes = std::env::var("BITX_CHUNK_SIZE").ok().and_then(|s| s.parse::<usize>().ok()).filter(|&v| v > 0).unwrap_or(1_048_576);
+        std::cmp::max(1, bytes / 2)
+    };
+    exp_output
+        .par_chunks_mut(chunk_size)
+        .zip(sm_output.par_chunks_mut(chunk_size))
+        .enumerate()
+        .for_each(|(chunk_idx, (exp_chunk, sm_chunk))| {
+            let start = chunk_idx * chunk_size;
+            let mut processed = 0usize;
+            #[cfg(all(target_arch = "x86_64"))]
+            {
+                if is_x86_feature_detected!("avx2") {
+                    unsafe {
+                        use core::arch::x86_64::*;
+                        let mut i = 0usize;
+                        while i + 16 <= exp_chunk.len() {
+                            let global_i = start + i;
+                            let byte_off = global_i * 2;
+                            let a = _mm256_loadu_si256(data1.as_ptr().add(byte_off) as *const __m256i);
+                            let b = _mm256_loadu_si256(data2.as_ptr().add(byte_off) as *const __m256i);
+                            let x = _mm256_xor_si256(a, b);
+                            let exp16 = _mm256_and_si256(_mm256_srli_epi16(x, 7), _mm256_set1_epi16(0x00FF));
+                            let mant16 = _mm256_and_si256(x, _mm256_set1_epi16(0x007F));
+                            let sign16 = _mm256_slli_epi16(_mm256_and_si256(_mm256_srli_epi16(x, 15), _mm256_set1_epi16(0x0001)), 7);
+                            let sm16 = _mm256_or_si256(sign16, mant16);
+                            let exp_lo = _mm256_castsi256_si128(exp16);
+                            let exp_hi = _mm256_extracti128_si256(exp16, 1);
+                            let exp_packed = _mm_packus_epi16(exp_lo, exp_hi);
+                            _mm_storeu_si128(exp_chunk.as_mut_ptr().add(i) as *mut __m128i, exp_packed);
+                            let sm_lo = _mm256_castsi256_si128(sm16);
+                            let sm_hi = _mm256_extracti128_si256(sm16, 1);
+                            let sm_packed = _mm_packus_epi16(sm_lo, sm_hi);
+                            _mm_storeu_si128(sm_chunk.as_mut_ptr().add(i) as *mut __m128i, sm_packed);
+                            i += 16;
+                        }
+                        processed = i;
+                    }
+                }
+            }
+            for j in processed..exp_chunk.len() {
+                let global_i = start + j;
+                let idx2 = global_i * 2;
+                let v1 = u16::from_le_bytes([data1[idx2], data1[idx2 + 1]]);
+                let v2 = u16::from_le_bytes([data2[idx2], data2[idx2 + 1]]);
+                let xor = v1 ^ v2;
+                let sign = ((xor >> 15) & 0x1) as u8;
+                let exponent = ((xor >> 7) & 0xFF) as u8;
+                let mantissa = (xor & 0x7F) as u8;
+                exp_chunk[j] = exponent;
+                sm_chunk[j] = (sign << 7) | mantissa;
+            }
+        });
+
+    Ok((exp_output, sm_output))
+}
+/// Optimized BitX compression that handles smaller tensors
+pub fn optimized_bitx_compress(data1: &[u8], data2: &[u8]) -> Result<(Vec<u8>, Vec<u8>)> {
+    let min_len = std::cmp::min(data1.len(), data2.len()) & !1;
+    if min_len < 2 {
+        return Err(anyhow::anyhow!("Input data too small for bitx compression"));
+    }
+    let chunk_count = min_len / 2;
+
+    // Pre-allocate the final output buffers, write in-place in parallel to avoid intermediate allocations
+    let mut exp_output = vec![0u8; chunk_count];
+    let mut sm_output = vec![0u8; chunk_count];
+
+    // Use a configurable chunk size from env (BITX_CHUNK_SIZE bytes); convert to pairs (u16) count
+    let chunk_size = {
+        let bytes = std::env::var("BITX_CHUNK_SIZE")
+            .ok()
+            .and_then(|s| s.parse::<usize>().ok())
+            .filter(|&v| v > 0)
+            .unwrap_or(1_048_576);
+        std::cmp::max(1, bytes / 2)
+    };
+        
+    exp_output
+        .par_chunks_mut(chunk_size)
+        .zip(sm_output.par_chunks_mut(chunk_size))
+        .enumerate()
+        .for_each(|(chunk_idx, (exp_chunk, sm_chunk))| {
+            let start = chunk_idx * chunk_size;
+            let _end = start + exp_chunk.len();
+            let mut processed = 0usize;
+
+            // Use AVX2 SIMD (on x86_64 and if CPU supports it)
+            #[cfg(all(target_arch = "x86_64"))]
+            {
+                if is_x86_feature_detected!("avx2") {
+                    unsafe {
+                        use core::arch::x86_64::*;
+                        let mut i = 0usize;
+                        while i + 16 <= exp_chunk.len() {
+                            let global_i = start + i;
+                            let byte_off = global_i * 2;
+
+                            let a = _mm256_loadu_si256(data1.as_ptr().add(byte_off) as *const __m256i);
+                            let b = _mm256_loadu_si256(data2.as_ptr().add(byte_off) as *const __m256i);
+                            let x = _mm256_xor_si256(a, b);
+
+                            // exponent = ((x >> 7) & 0x00FF)
+                            let exp16 = _mm256_and_si256(_mm256_srli_epi16(x, 7), _mm256_set1_epi16(0x00FF));
+                            // mantissa = (x & 0x007F)
+                            let mant16 = _mm256_and_si256(x, _mm256_set1_epi16(0x007F));
+                            // sign << 7 = ((x >> 15) & 1) << 7
+                            let sign16 = _mm256_slli_epi16(_mm256_and_si256(_mm256_srli_epi16(x, 15), _mm256_set1_epi16(0x0001)), 7);
+                            let sm16 = _mm256_or_si256(sign16, mant16);
+
+                            // Pack the low bytes of 16 u16s into 16 u8s
+                            let exp_lo = _mm256_castsi256_si128(exp16);
+                            let exp_hi = _mm256_extracti128_si256(exp16, 1);
+                            let exp_packed = _mm_packus_epi16(exp_lo, exp_hi);
+                            _mm_storeu_si128(exp_chunk.as_mut_ptr().add(i) as *mut __m128i, exp_packed);
+
+                            let sm_lo = _mm256_castsi256_si128(sm16);
+                            let sm_hi = _mm256_extracti128_si256(sm16, 1);
+                            let sm_packed = _mm_packus_epi16(sm_lo, sm_hi);
+                            _mm_storeu_si128(sm_chunk.as_mut_ptr().add(i) as *mut __m128i, sm_packed);
+
+                            i += 16;
+                        }
+                        processed = i;
+                    }
+                }
+            }
+
+            // Handle the remainder (or non-AVX2 environment)
+            for j in processed..exp_chunk.len() {
+                let global_i = start + j;
+                let idx2 = global_i * 2;
+                let v1 = u16::from_le_bytes([data1[idx2], data1[idx2 + 1]]);
+                let v2 = u16::from_le_bytes([data2[idx2], data2[idx2 + 1]]);
+                let xor = v1 ^ v2;
+
+                let sign = ((xor >> 15) & 0x1) as u8;
+                let exponent = ((xor >> 7) & 0xFF) as u8;
+                let mantissa = (xor & 0x7F) as u8;
+
+                exp_chunk[j] = exponent;
+                sm_chunk[j] = (sign << 7) | mantissa;
+            }
+        });
+
+    const LARGE_DATA_THRESHOLD: usize = 10 * 1024 * 1024; // 10MB
+    
+    if data2.len() > LARGE_DATA_THRESHOLD {
+        let compression_chunk_size = std::env::var("BITX_CHUNK_SIZE")
+            .ok()
+            .and_then(|s| s.parse::<usize>().ok())
+            .filter(|&v| v > 0)
+            .unwrap_or(1_048_576);
+        let zstd_level = 3;
+
+        let (compressed_exp_chunks, compressed_sm_chunks): (Vec<Vec<u8>>, Vec<Vec<u8>>) = rayon::join(
+            || exp_output
+                .par_chunks(compression_chunk_size)
+                .map(|chunk| zstd_compress_data(chunk, zstd_level))
+                .collect(),
+            || sm_output
+                .par_chunks(compression_chunk_size)
+                .map(|chunk| zstd_compress_data(chunk, zstd_level))
+                .collect(),
+        );
+
+        let total_exp_size: usize = compressed_exp_chunks.iter().map(|v| v.len()).sum();
+        let total_sm_size: usize = compressed_sm_chunks.iter().map(|v| v.len()).sum();
+
+        let mut compressed_exp = Vec::with_capacity(total_exp_size);
+        let mut compressed_sm = Vec::with_capacity(total_sm_size);
+
+        for chunk in compressed_exp_chunks { compressed_exp.extend_from_slice(&chunk); }
+        for chunk in compressed_sm_chunks { compressed_sm.extend_from_slice(&chunk); }
+
+        Ok((compressed_exp, compressed_sm))
+    } else {
+        let (compressed_exp, compressed_sm): (Vec<u8>, Vec<u8>) = rayon::join(
+            || crate::compression::zstd_compress_data(&exp_output, 3),
+            || crate::compression::zstd_compress_data(&sm_output, 3),
+        );
+
+        Ok((compressed_exp, compressed_sm))
+    }
+}
+
+
+/// Result structure for BitX compression benchmark
+#[derive(Debug)]
+pub struct BitxBenchmarkResult {
+    pub total_tensors: usize,
+    pub processed_tensors: usize,
+    pub skipped_tensors: usize,
+    pub total_original_size_mb: f64,
+    pub total_compressed_size_mb: f64,
+    pub compression_ratio: f64,
+    pub compression_time_seconds: f64,
+    pub throughput_mb_per_sec: f64,
+}
+
+/// Structure to represent a tensor in a model
+#[derive(Debug, Clone)]
+pub struct ModelTensor {
+    pub name: String,
+    pub data: Vec<u8>,
+    pub shape: Vec<usize>,
+    pub dtype: String,
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;
-    use rayon::ThreadPool;
     use rand::Rng;
     use std::fs;
 

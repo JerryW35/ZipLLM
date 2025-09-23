@@ -51,7 +51,7 @@ def parse_streaming_chunk_size(streaming_chunk_size):
 
 
 def compress_once(input_file: str, dtype: str = "bfloat16", method: str = "HUFFMAN", threads: int = 32,
-                  streaming_chunk_size: str | int | None = None) -> tuple[int, int, str]:
+                  streaming_chunk_size: str | int | None = None) -> tuple[int, int]:
     import zipnn
 
     full_path = os.path.abspath(input_file)
@@ -62,8 +62,6 @@ def compress_once(input_file: str, dtype: str = "bfloat16", method: str = "HUFFM
         chunk_bytes = MB
     else:
         chunk_bytes = parse_streaming_chunk_size(streaming_chunk_size)
-
-    output_file = full_path + ".znn"
 
     zpn = zipnn.ZipNN(
         bytearray_dtype=dtype,
@@ -76,15 +74,14 @@ def compress_once(input_file: str, dtype: str = "bfloat16", method: str = "HUFFM
     size_before = 0
     size_after = 0
 
-    with open(full_path, "rb") as infile, open(output_file, "wb") as outfile:
+    with open(full_path, "rb") as infile:
         data = infile.read()
         size_before = len(data)
         compressed = zpn.compress(data)
         if compressed:
             size_after = len(compressed)
-            outfile.write(compressed)
 
-    return size_before, size_after, output_file
+    return size_before, size_after
 
 
 def main():
@@ -107,7 +104,7 @@ def main():
     check_and_install_zipnn()
 
     try:
-        size_before, size_after, out_path = compress_once(
+        size_before, size_after = compress_once(
             args.input_file,
             dtype=args.dtype,
             method=args.method,
@@ -118,7 +115,6 @@ def main():
         print(f"{RED}Error: {e}{RESET}")
         sys.exit(1)
 
-    print(f"Compressed to: {out_path}")
     print(f"Original size: {size_before} bytes")
     print(f"Compressed size: {size_after} bytes")
     if size_before > 0 and size_after > 0:

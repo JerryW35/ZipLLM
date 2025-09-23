@@ -4,8 +4,18 @@ use crate::bitx::bitx_compress;
 use anyhow::Result;
 use std::collections::{HashMap, BTreeMap};
 use rayon::prelude::*;
-use crate::bitx::bitx_bytes::zstd_compress_data;
 use log::{info, warn, debug};
+use zstd::stream::Encoder;
+use std::io::Write;
+
+pub fn zstd_compress_data(data: &[u8], level: i32) -> Vec<u8> {
+    let mut output = Vec::with_capacity(data.len() / 3);
+    let mut encoder = Encoder::new(&mut output, level).expect("Zstd encoder failed");
+    encoder.write_all(data).expect("Write failed");
+    encoder.finish().expect("Finish failed");
+    output
+}
+
 
 #[derive(Debug, Clone)]
 pub struct CompressionStats {
