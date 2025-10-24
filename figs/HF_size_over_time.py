@@ -105,5 +105,3 @@ ax_right.legend(lines_left + lines_right, labels_left + labels_right,
 # Save figure
 fig.tight_layout()
 fig.savefig("./repo_growth_2col.pdf", bbox_inches="tight")
-
-print("Figure saved as 'repo_growth_2col.pdf'")
